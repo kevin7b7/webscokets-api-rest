@@ -46,7 +46,6 @@ export class TicketController{
     public ticketFinished = async( req:Request, res:Response) => {
 
         const { ticketId } = req.params;
-
         res.json( this.ticketService.onFinishedTicket( ticketId ) );
 
 
@@ -54,7 +53,7 @@ export class TicketController{
 
      public workingOn = async( req:Request, res:Response) => {
 
-        res.json( this.workingOn );
+        res.json( this.ticketService.lastWorkingOnTickets );
 
     }
 

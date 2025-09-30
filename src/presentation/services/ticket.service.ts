@@ -1,10 +1,17 @@
 import { UuidAdapter } from "../../config/uuid.adapter";
 import { Ticket } from "../../domain/interfaces/ticket";
+import { WssService } from "./wss.service";
 
 export class TicketService {
 
 
-    public readonly tickets: Ticket[] = [
+    constructor(
+        private readonly wssService = WssService.instance
+    ){
+
+    }
+
+    public tickets: Ticket[] = [
 
         { id: UuidAdapter.v4(), number: 1, createdAt: new Date(), done: false },
         { id: UuidAdapter.v4(), number: 2, createdAt: new Date(), done: false },
@@ -24,7 +31,7 @@ export class TicketService {
 
 
     public get lastWorkingOnTickets():Ticket[]{
-        return this.workingOnTickets.splice(0,4);
+        return this.workingOnTickets.slice(0,4);
     }
 
     public get lastTicketNumber(): number {
@@ -43,6 +50,8 @@ export class TicketService {
         }
 
         this.tickets.push(newTicket);
+        this.onTicketNumberChanged();
+        
 
         return newTicket;
 
@@ -61,7 +70,8 @@ export class TicketService {
 
         this.workingOnTickets.unshift({ ...ticket });
 
-
+        this.onTicketNumberChanged();
+        this.onWorkingChanged();
 
         return { status: 'ok', ticket }
 
@@ -82,7 +92,23 @@ export class TicketService {
             return ticket;
         })
 
+
+        this.onTicketNumberChanged();
+
         return { status: 'ok' }
+
+    }
+
+    private onTicketNumberChanged(){
+
+        this.wssService.sendMessage( 'on-ticket-count-changed', this.pendingTickets.length );
+
+    }
+
+
+    private onWorkingChanged(){
+
+        this.wssService.sendMessage( 'on-working-changed', this.lastWorkingOnTickets );
 
     }
 
